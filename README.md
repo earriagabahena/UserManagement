@@ -202,7 +202,7 @@ Password: Admin123!@#$%
 
 ## 👨‍💻 Autor
 
-**Jared Arriaga Bahena**
+**Edgar Alexis Arriaga Bahena**
 
 ## 📄 Licencia
 
