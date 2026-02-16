@@ -1,4 +1,8 @@
 <Solution>
+  <Folder Name="/Database/">
+    <File Path="CrearDB.txt" />
+    <File Path="SPs.txt" />
+  </Folder>
   <Project Path="UserManagement.Business/UserManagement.Business.csproj" />
   <Project Path="UserManagement.Data/UserManagement.Data.csproj" />
   <Project Path="UserManagement.Web/UserManagement.Web.csproj" />

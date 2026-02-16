@@ -1,0 +1,203 @@
+-- =============================================
+-- STORED PROCEDURES
+-- =============================================
+
+USE UserManagementDB;
+GO
+
+-- 1. Obtener todos los usuarios
+CREATE OR ALTER PROCEDURE sp_ObtenerTodosUsuarios
+AS
+BEGIN
+    SELECT Id, NombreCompleto, NombreUsuario, Password, Correo, 
+           Estatus, FechaAlta, FechaModificacion
+    FROM Usuarios
+    ORDER BY FechaAlta DESC;
+END
+GO
+
+-- 2. Obtener usuario por ID
+CREATE OR ALTER PROCEDURE sp_ObtenerUsuarioPorId
+    @Id INT
+AS
+BEGIN
+    SELECT Id, NombreCompleto, NombreUsuario, Password, Correo, 
+           Estatus, FechaAlta, FechaModificacion
+    FROM Usuarios
+    WHERE Id = @Id;
+END
+GO
+
+-- 3. Obtener usuario por nombre (login)
+CREATE OR ALTER PROCEDURE sp_ObtenerUsuarioPorNombreUsuario
+    @NombreUsuario NVARCHAR(50)
+AS
+BEGIN
+    SELECT Id, NombreCompleto, NombreUsuario, Password, Correo, 
+           Estatus, FechaAlta, FechaModificacion
+    FROM Usuarios
+    WHERE NombreUsuario = @NombreUsuario;
+END
+GO
+
+-- 4. Crear usuario
+CREATE OR ALTER PROCEDURE sp_CrearUsuario
+    @NombreCompleto NVARCHAR(200),
+    @NombreUsuario NVARCHAR(50),
+    @Password NVARCHAR(500),
+    @Correo NVARCHAR(100),
+    @Estatus BIT
+AS
+BEGIN
+    IF EXISTS (SELECT 1 FROM Usuarios WHERE NombreUsuario = @NombreUsuario)
+    BEGIN
+        RAISERROR('El nombre de usuario ya existe', 16, 1);
+        RETURN;
+    END
+    
+    IF EXISTS (SELECT 1 FROM Usuarios WHERE Correo = @Correo)
+    BEGIN
+        RAISERROR('El correo ya está registrado', 16, 1);
+        RETURN;
+    END
+    
+    INSERT INTO Usuarios (NombreCompleto, NombreUsuario, Password, Correo, Estatus, FechaAlta)
+    VALUES (@NombreCompleto, @NombreUsuario, @Password, @Correo, @Estatus, GETDATE());
+    
+    SELECT Id, NombreCompleto, NombreUsuario, Password, Correo, 
+           Estatus, FechaAlta, FechaModificacion
+    FROM Usuarios
+    WHERE Id = SCOPE_IDENTITY();
+END
+GO
+
+-- 5. Actualizar usuario
+CREATE OR ALTER PROCEDURE sp_ActualizarUsuario
+    @Id INT,
+    @NombreCompleto NVARCHAR(200),
+    @NombreUsuario NVARCHAR(50),
+    @Password NVARCHAR(500) = NULL,
+    @Correo NVARCHAR(100),
+    @Estatus BIT
+AS
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM Usuarios WHERE Id = @Id)
+    BEGIN
+        RAISERROR('Usuario no encontrado', 16, 1);
+        RETURN;
+    END
+    
+    IF EXISTS (SELECT 1 FROM Usuarios WHERE NombreUsuario = @NombreUsuario AND Id != @Id)
+    BEGIN
+        RAISERROR('El nombre de usuario ya existe', 16, 1);
+        RETURN;
+    END
+    
+    IF EXISTS (SELECT 1 FROM Usuarios WHERE Correo = @Correo AND Id != @Id)
+    BEGIN
+        RAISERROR('El correo ya está registrado', 16, 1);
+        RETURN;
+    END
+    
+    IF @Password IS NULL OR @Password = ''
+    BEGIN
+        UPDATE Usuarios
+        SET NombreCompleto = @NombreCompleto,
+            NombreUsuario = @NombreUsuario,
+            Correo = @Correo,
+            Estatus = @Estatus,
+            FechaModificacion = GETDATE()
+        WHERE Id = @Id;
+    END
+    ELSE
+    BEGIN
+        UPDATE Usuarios
+        SET NombreCompleto = @NombreCompleto,
+            NombreUsuario = @NombreUsuario,
+            Password = @Password,
+            Correo = @Correo,
+            Estatus = @Estatus,
+            FechaModificacion = GETDATE()
+        WHERE Id = @Id;
+    END
+    
+    SELECT Id, NombreCompleto, NombreUsuario, Password, Correo, 
+           Estatus, FechaAlta, FechaModificacion
+    FROM Usuarios
+    WHERE Id = @Id;
+END
+GO
+
+-- 6. Eliminar usuario
+CREATE OR ALTER PROCEDURE sp_EliminarUsuario
+    @Id INT
+AS
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM Usuarios WHERE Id = @Id)
+    BEGIN
+        RAISERROR('Usuario no encontrado', 16, 1);
+        RETURN;
+    END
+    
+    DELETE FROM Usuarios WHERE Id = @Id;
+END
+GO
+
+-- 7. Verificar nombre de usuario
+CREATE OR ALTER PROCEDURE sp_ExisteNombreUsuario
+    @NombreUsuario NVARCHAR(50),
+    @ExcluirId INT = NULL
+AS
+BEGIN
+    IF @ExcluirId IS NULL
+        SELECT CAST(CASE WHEN EXISTS (SELECT 1 FROM Usuarios WHERE NombreUsuario = @NombreUsuario) 
+                    THEN 1 ELSE 0 END AS BIT) AS Existe;
+    ELSE
+        SELECT CAST(CASE WHEN EXISTS (SELECT 1 FROM Usuarios WHERE NombreUsuario = @NombreUsuario AND Id != @ExcluirId) 
+                    THEN 1 ELSE 0 END AS BIT) AS Existe;
+END
+GO
+
+-- 8. Verificar correo
+CREATE OR ALTER PROCEDURE sp_ExisteCorreo
+    @Correo NVARCHAR(100),
+    @ExcluirId INT = NULL
+AS
+BEGIN
+    IF @ExcluirId IS NULL
+        SELECT CAST(CASE WHEN EXISTS (SELECT 1 FROM Usuarios WHERE Correo = @Correo) 
+                    THEN 1 ELSE 0 END AS BIT) AS Existe;
+    ELSE
+        SELECT CAST(CASE WHEN EXISTS (SELECT 1 FROM Usuarios WHERE Correo = @Correo AND Id != @ExcluirId) 
+                    THEN 1 ELSE 0 END AS BIT) AS Existe;
+END
+GO
+
+-- 9. Dashboard
+CREATE OR ALTER PROCEDURE sp_ObtenerDatosDashboard
+AS
+BEGIN
+    DECLARE @Hoy DATE = CAST(GETDATE() AS DATE);
+    DECLARE @InicioSemana DATE = DATEADD(DAY, -(DATEPART(WEEKDAY, @Hoy) - 1), @Hoy);
+    DECLARE @InicioMes DATE = DATEFROMPARTS(YEAR(@Hoy), MONTH(@Hoy), 1);
+    
+    SELECT 
+        COUNT(*) AS TotalUsuarios,
+        SUM(CASE WHEN Estatus = 1 THEN 1 ELSE 0 END) AS UsuariosActivos,
+        SUM(CASE WHEN Estatus = 0 THEN 1 ELSE 0 END) AS UsuariosInactivos,
+        SUM(CASE WHEN CAST(FechaAlta AS DATE) = @Hoy THEN 1 ELSE 0 END) AS UsuariosRegistradosHoy,
+        SUM(CASE WHEN CAST(FechaAlta AS DATE) >= @InicioSemana THEN 1 ELSE 0 END) AS UsuariosRegistradosSemana,
+        SUM(CASE WHEN CAST(FechaAlta AS DATE) >= @InicioMes THEN 1 ELSE 0 END) AS UsuariosRegistradosMes
+    FROM Usuarios;
+    
+    SELECT TOP 5 NombreCompleto, NombreUsuario, FechaAlta, Estatus
+    FROM Usuarios
+    ORDER BY FechaAlta DESC;
+    
+    SELECT FORMAT(FechaAlta, 'yyyy-MM') AS Mes, COUNT(*) AS Cantidad
+    FROM Usuarios
+    WHERE FechaAlta >= DATEADD(MONTH, -6, GETDATE())
+    GROUP BY FORMAT(FechaAlta, 'yyyy-MM')
+    ORDER BY Mes;
+END
+GO

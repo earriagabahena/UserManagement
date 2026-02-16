@@ -1,0 +1,50 @@
+-- =============================================
+-- CREAR BASE DE DATOS Y TABLA
+-- =============================================
+
+IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'UserManagementDB')
+    CREATE DATABASE UserManagementDB;
+GO
+
+USE UserManagementDB;
+GO
+
+-- Tabla Usuarios
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Usuarios')
+BEGIN
+    CREATE TABLE Usuarios (
+        Id INT PRIMARY KEY IDENTITY(1,1),
+        NombreCompleto NVARCHAR(200) NOT NULL,
+        NombreUsuario NVARCHAR(50) NOT NULL UNIQUE,
+        Password NVARCHAR(500) NOT NULL,
+        Correo NVARCHAR(100) NOT NULL UNIQUE,
+        Estatus BIT NOT NULL DEFAULT 1,
+        FechaAlta DATETIME NOT NULL DEFAULT GETDATE(),
+        FechaModificacion DATETIME NULL
+    );
+END
+GO
+
+-- Índices
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Usuarios_NombreUsuario')
+    CREATE NONCLUSTERED INDEX IX_Usuarios_NombreUsuario ON Usuarios(NombreUsuario);
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Usuarios_Correo')
+    CREATE NONCLUSTERED INDEX IX_Usuarios_Correo ON Usuarios(Correo);
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Usuarios_Estatus')
+    CREATE NONCLUSTERED INDEX IX_Usuarios_Estatus ON Usuarios(Estatus);
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Usuarios_FechaAlta')
+    CREATE NONCLUSTERED INDEX IX_Usuarios_FechaAlta ON Usuarios(FechaAlta DESC);
+GO
+
+-- Datos de prueba (Contraseña: Test@1234567890)
+IF NOT EXISTS (SELECT 1 FROM Usuarios)
+BEGIN
+    INSERT INTO Usuarios (NombreCompleto, NombreUsuario, Password, Correo, Estatus, FechaAlta)
+    VALUES 
+    ('Administrador del Sistema', 'admin', 'Admin@12345678', 'admin@sistema.com', 1, GETDATE()),
+    ('Edgar Alexis Arriaga Bahena', 'EdgarArBa', 'Edgar@12345678', 'edgar.arriaga@correo.com', 1, GETDATE())
+END
+GO
