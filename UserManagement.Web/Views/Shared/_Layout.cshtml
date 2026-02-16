@@ -1,0 +1,192 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EY - @ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <style>
+        :root {
+            --ey-yellow: #FFE600;
+            --ey-black: #2E2E38;
+            --ey-gray: #747480;
+            --ey-light: #F6F6FA;
+        }
+
+        body {
+            background-color: var(--ey-light);
+        }
+
+        .navbar-ey {
+            background-color: var(--ey-black);
+            border-bottom: 3px solid var(--ey-yellow);
+            padding: 0.75rem 1.5rem;
+        }
+
+            .navbar-ey .ey-logo {
+                font-size: 1.8rem;
+                font-weight: 900;
+                color: white;
+                letter-spacing: -1px;
+                text-decoration: none;
+            }
+
+                .navbar-ey .ey-logo span {
+                    color: var(--ey-yellow);
+                    background: transparent;
+                }
+
+            .navbar-ey .nav-link {
+                color: rgba(255,255,255,0.85) !important;
+                font-weight: 500;
+                padding: 0.5rem 1rem !important;
+                transition: color 0.2s;
+            }
+
+                .navbar-ey .nav-link:hover, .navbar-ey .nav-link.active {
+                    color: var(--ey-yellow) !important;
+                }
+
+                .navbar-ey .nav-link i {
+                    margin-right: 6px;
+                }
+
+        .btn-ey {
+            background-color: var(--ey-yellow);
+            color: var(--ey-black);
+            font-weight: 700;
+            border: none;
+            border-radius: 0;
+            padding: 0.5rem 1.5rem;
+            transition: background 0.2s;
+        }
+
+            .btn-ey:hover {
+                background-color: #f0d800;
+                color: var(--ey-black);
+            }
+
+        .btn-ey-outline {
+            border: 2px solid var(--ey-yellow);
+            color: var(--ey-black);
+            font-weight: 600;
+            border-radius: 0;
+            background: transparent;
+            padding: 0.4rem 1.2rem;
+        }
+
+            .btn-ey-outline:hover {
+                background-color: var(--ey-yellow);
+            }
+
+        .card {
+            border-radius: 0;
+            border: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .card-header-ey {
+            background-color: var(--ey-black);
+            color: white;
+            border-radius: 0 !important;
+            padding: 1rem 1.5rem;
+            border-bottom: 3px solid var(--ey-yellow);
+        }
+
+        .table thead th {
+            background-color: var(--ey-black);
+            color: white;
+            font-weight: 600;
+            border: none;
+        }
+
+        .table tbody tr:hover {
+            background-color: rgba(255,230,0,0.08);
+        }
+
+        .badge-active {
+            background-color: #28a745;
+            color: white;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        .badge-inactive {
+            background-color: var(--ey-gray);
+            color: white;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        .main-content {
+            padding: 2rem 1.5rem;
+        }
+
+        .stat-card {
+            border-left: 4px solid var(--ey-yellow);
+            background: white;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+            .stat-card .stat-number {
+                font-size: 2rem;
+                font-weight: 900;
+                color: var(--ey-black);
+            }
+
+            .stat-card .stat-label {
+                color: var(--ey-gray);
+                font-size: 0.85rem;
+                font-weight: 500;
+            }
+    </style>
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <nav class="navbar navbar-ey navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="ey-logo" href="/Dashboard/Index"><span>EY</span></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto ms-4">
+                    <li class="nav-item">
+                        <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")"
+                           href="/Dashboard/Index">
+                            <i class="fas fa-chart-bar"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Usuarios" ? "active" : "")"
+                           href="/Usuarios/Index">
+                            <i class="fas fa-users"></i>Usuarios
+                        </a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <span class="text-white me-3" style="font-size:0.9rem">
+                        <i class="fas fa-user-circle me-1" style="color:var(--ey-yellow)"></i>
+                        @User.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value
+                    </span>
+                    <form method="post" asp-action="Logout" asp-controller="Auth" class="mb-0">
+                        <button type="submit" class="btn btn-sm btn-ey">
+                            <i class="fas fa-sign-out-alt me-1"></i>Salir
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        @RenderBody()
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.0/dist/jquery.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

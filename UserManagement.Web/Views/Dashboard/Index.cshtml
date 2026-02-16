@@ -1,0 +1,128 @@
+﻿@model UserManagement.Business.DTOs.DashboardDto
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h4 class="fw-bold" style="color: var(--ey-black)">
+            <i class="fas fa-chart-bar me-2" style="color: var(--ey-yellow)"></i>Dashboard
+        </h4>
+        <hr style="border-color: var(--ey-yellow); border-width: 2px; opacity:1; width:60px; margin-top:0">
+    </div>
+</div>
+
+<!-- Tarjetas de estadísticas -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4 col-sm-6">
+        <div class="stat-card">
+            <div class="stat-number">@Model.TotalUsuarios</div>
+            <div class="stat-label"><i class="fas fa-users me-1"></i>Total Usuarios</div>
+        </div>
+    </div>
+    <div class="col-md-4 col-sm-6">
+        <div class="stat-card" style="border-left-color: #28a745">
+            <div class="stat-number" style="color:#28a745">@Model.UsuariosActivos</div>
+            <div class="stat-label"><i class="fas fa-user-check me-1"></i>Usuarios Activos</div>
+        </div>
+    </div>
+    <div class="col-md-4 col-sm-6">
+        <div class="stat-card" style="border-left-color: var(--ey-gray)">
+            <div class="stat-number" style="color:var(--ey-gray)">@Model.UsuariosInactivos</div>
+            <div class="stat-label"><i class="fas fa-user-times me-1"></i>Usuarios Inactivos</div>
+        </div>
+    </div>
+    <div class="col-md-4 col-sm-6">
+        <div class="stat-card" style="border-left-color:#007bff">
+            <div class="stat-number" style="color:#007bff">@Model.UsuariosRegistradosHoy</div>
+            <div class="stat-label"><i class="fas fa-calendar-day me-1"></i>Registrados Hoy</div>
+        </div>
+    </div>
+    <div class="col-md-4 col-sm-6">
+        <div class="stat-card" style="border-left-color:#fd7e14">
+            <div class="stat-number" style="color:#fd7e14">@Model.UsuariosRegistradosSemana</div>
+            <div class="stat-label"><i class="fas fa-calendar-week me-1"></i>Registrados esta Semana</div>
+        </div>
+    </div>
+    <div class="col-md-4 col-sm-6">
+        <div class="stat-card" style="border-left-color:#6f42c1">
+            <div class="stat-number" style="color:#6f42c1">@Model.UsuariosRegistradosMes</div>
+            <div class="stat-label"><i class="fas fa-calendar-alt me-1"></i>Registrados este Mes</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <!-- Gráfica -->
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header-ey">
+                <i class="fas fa-chart-line me-2"></i>Registros Últimos 6 Meses
+            </div>
+            <div class="card-body p-3">
+                <canvas id="chartRegistros" height="120"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Usuarios recientes -->
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header-ey">
+                <i class="fas fa-clock me-2"></i>Últimos Usuarios Registrados
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-sm mb-0">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Usuario</th>
+                            <th>Estatus</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var u in Model.UsuariosRecientes)
+                        {
+                            <tr>
+                                <td style="font-size:0.85rem">@u.NombreCompleto</td>
+                                <td style="font-size:0.85rem">@u.NombreUsuario</td>
+                                <td>
+                                    <span class="badge @(u.Estatus ? "badge-active" : "badge-inactive")">
+                                        @(u.Estatus ? "Activo" : "Inactivo")
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const labels = [@Html.Raw(string.Join(",", Model.RegistrosMensuales.Select(r => $"'{r.Mes}'")))];
+        const data = [@Html.Raw(string.Join(",", Model.RegistrosMensuales.Select(r => r.Cantidad)))];
+
+        new Chart(document.getElementById('chartRegistros'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Usuarios Registrados',
+                    data: data,
+                    backgroundColor: '#FFE600',
+                    borderColor: '#2E2E38',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+            }
+        });
+    </script>
+}

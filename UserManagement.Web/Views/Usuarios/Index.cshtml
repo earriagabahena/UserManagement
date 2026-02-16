@@ -1,0 +1,297 @@
+﻿@model IEnumerable<UserManagement.Business.DTOs.UsuarioDto>
+@{
+    ViewData["Title"] = "Catálogo de Usuarios";
+}
+
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h4 class="fw-bold mb-0" style="color: var(--ey-black)">
+                <i class="fas fa-users me-2" style="color: var(--ey-yellow)"></i>Catálogo de Usuarios
+            </h4>
+            <hr style="border-color: var(--ey-yellow); border-width: 2px; opacity:1; width:60px; margin-top:4px">
+        </div>
+        <button class="btn-ey px-4 py-2" onclick="abrirModalCrear()">
+            <i class="fas fa-plus me-2"></i>Nuevo Usuario
+        </button>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0" id="tablaUsuarios">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre Completo</th>
+                    <th>Usuario</th>
+                    <th>Correo</th>
+                    <th>Estatus</th>
+                    <th>Fecha Alta</th>
+                    <th>Fecha Modificación</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var u in Model)
+                {
+                    <tr>
+                        <td>@u.Id</td>
+                        <td>@u.NombreCompleto</td>
+                        <td>@u.NombreUsuario</td>
+                        <td>@u.Correo</td>
+                        <td>
+                            <span class="badge @(u.Estatus ? "badge-active" : "badge-inactive")">
+                                @(u.Estatus ? "Activo" : "Inactivo")
+                            </span>
+                        </td>
+                        <td>@u.FechaAlta.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>@(u.FechaModificacion?.ToString("dd/MM/yyyy HH:mm") ?? "-")</td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-warning me-1" onclick="abrirModalEditar(@u.Id)"
+                                    title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="eliminarUsuario(@u.Id, '@u.NombreCompleto')"
+                                    title="Eliminar">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Crear/Editar -->
+<div class="modal fade" id="modalUsuario" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="border-radius:0; border-top: 3px solid var(--ey-yellow)">
+            <div class="modal-header" style="background:var(--ey-black); color:white">
+                <h5 class="modal-title" id="modalTitulo">
+                    <i class="fas fa-user me-2"></i>Nuevo Usuario
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="usuarioId" />
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Nombre Completo <span class="text-danger">*</span></label>
+                        <input type="text" id="nombreCompleto" class="form-control" style="border-radius:0"
+                               placeholder="Nombre completo" maxlength="200" />
+                        <div class="invalid-feedback" id="errNombreCompleto"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Nombre de Usuario <span class="text-danger">*</span></label>
+                        <input type="text" id="nombreUsuario" class="form-control" style="border-radius:0"
+                               placeholder="Nombre de usuario" maxlength="50" />
+                        <div class="invalid-feedback" id="errNombreUsuario"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">
+                            Contraseña <span class="text-danger">*</span>
+                            <small id="passwordHint" class="text-muted fw-normal">(dejar vacío para no cambiar)</small>
+                        </label>
+                        <div class="input-group">
+                            <input type="password" id="password" class="form-control" style="border-radius:0"
+                                   placeholder="Mínimo 14 caracteres" maxlength="500" />
+                            <button type="button" class="btn btn-outline-secondary" style="border-radius:0"
+                                    onclick="togglePass()">
+                                <i class="fas fa-eye" id="eyeIcon"></i>
+                            </button>
+                        </div>
+                        <div class="invalid-feedback d-block" id="errPassword"></div>
+                        <small class="text-muted">Debe tener mayúscula, minúscula, número y carácter especial</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Correo <span class="text-danger">*</span></label>
+                        <input type="email" id="correo" class="form-control" style="border-radius:0"
+                               placeholder="correo@ejemplo.com" maxlength="100" />
+                        <div class="invalid-feedback" id="errCorreo"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Estatus <span class="text-danger">*</span></label>
+                        <select id="estatus" class="form-select" style="border-radius:0">
+                            <option value="true">Activo</option>
+                            <option value="false">Inactivo</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" style="border-radius:0"
+                        data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn-ey px-4" onclick="guardarUsuario()">
+                    <i class="fas fa-save me-2"></i>Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Confirmación Eliminar -->
+<div class="modal fade" id="modalEliminar" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius:0; border-top: 3px solid #dc3545">
+            <div class="modal-header" style="background:#dc3545; color:white">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>Confirmar Eliminación</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro que deseas eliminar al usuario <strong id="nombreEliminar"></strong>?</p>
+                <p class="text-muted small">Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" style="border-radius:0"
+                        data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" style="border-radius:0"
+                        onclick="confirmarEliminar()">
+                    <i class="fas fa-trash me-2"></i>Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    let idEliminar = null;
+    let modoEdicion = false;
+
+    function abrirModalCrear() {
+        modoEdicion = false;
+        document.getElementById('modalTitulo').innerHTML = '<i class="fas fa-user-plus me-2"></i>Nuevo Usuario';
+        document.getElementById('usuarioId').value = '';
+        document.getElementById('nombreCompleto').value = '';
+        document.getElementById('nombreUsuario').value = '';
+        document.getElementById('password').value = '';
+        document.getElementById('correo').value = '';
+        document.getElementById('estatus').value = 'true';
+        document.getElementById('passwordHint').style.display = 'none';
+        limpiarErrores();
+        new bootstrap.Modal(document.getElementById('modalUsuario')).show();
+    }
+
+    async function abrirModalEditar(id) {
+        modoEdicion = true;
+        const res = await fetch(`/Usuarios/ObtenerPorId?id=${id}`);
+        const result = await res.json();
+        if (!result.success) { alert(result.message); return; }
+        const u = result.data;
+        document.getElementById('modalTitulo').innerHTML = '<i class="fas fa-user-edit me-2"></i>Editar Usuario';
+        document.getElementById('usuarioId').value = u.id;
+        document.getElementById('nombreCompleto').value = u.nombreCompleto;
+        document.getElementById('nombreUsuario').value = u.nombreUsuario;
+        document.getElementById('password').value = '';
+        document.getElementById('correo').value = u.correo;
+        document.getElementById('estatus').value = u.estatus.toString();
+        document.getElementById('passwordHint').style.display = 'inline';
+        limpiarErrores();
+        new bootstrap.Modal(document.getElementById('modalUsuario')).show();
+    }
+
+    async function guardarUsuario() {
+        limpiarErrores();
+        const id = document.getElementById('usuarioId').value;
+        const nombreCompleto = document.getElementById('nombreCompleto').value.trim();
+        const nombreUsuario = document.getElementById('nombreUsuario').value.trim();
+        const password = document.getElementById('password').value;
+        const correo = document.getElementById('correo').value.trim();
+        const estatus = document.getElementById('estatus').value === 'true';
+
+        let valido = true;
+
+        if (!nombreCompleto) {
+            mostrarError('errNombreCompleto', 'El nombre completo es requerido.');
+            valido = false;
+        }
+        if (!nombreUsuario) {
+            mostrarError('errNombreUsuario', 'El nombre de usuario es requerido.');
+            valido = false;
+        }
+        if (!modoEdicion && !password) {
+            mostrarError('errPassword', 'La contraseña es requerida.');
+            valido = false;
+        }
+        if (password && !validarPassword(password)) valido = false;
+              if (!correo || !correo.includes('@@')) {
+            mostrarError('errCorreo', 'El correo no es válido.');
+            valido = false;
+        }
+        if (!valido) return;
+
+        const url = modoEdicion ? '/Usuarios/Actualizar' : '/Usuarios/Crear';
+        const body = modoEdicion
+            ? { id: parseInt(id), nombreCompleto, nombreUsuario, password: password || null, correo, estatus }
+            : { nombreCompleto, nombreUsuario, password, correo, estatus };
+
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        const result = await res.json();
+
+        if (result.success) {
+            bootstrap.Modal.getInstance(document.getElementById('modalUsuario')).hide();
+            location.reload();
+        } else {
+            mostrarError('errPassword', result.message);
+        }
+    }
+
+    function eliminarUsuario(id, nombre) {
+        idEliminar = id;
+        document.getElementById('nombreEliminar').textContent = nombre;
+        new bootstrap.Modal(document.getElementById('modalEliminar')).show();
+    }
+
+    async function confirmarEliminar() {
+        const res = await fetch(`/Usuarios/Eliminar?id=${idEliminar}`, { method: 'POST' });
+        const result = await res.json();
+        if (result.success) {
+            bootstrap.Modal.getInstance(document.getElementById('modalEliminar')).hide();
+            location.reload();
+        } else {
+            alert(result.message);
+        }
+    }
+
+    function validarPassword(pwd) {
+        if (pwd.length < 14) { mostrarError('errPassword', 'Mínimo 14 caracteres.'); return false; }
+        if (!/[A-Z]/.test(pwd)) { mostrarError('errPassword', 'Debe tener al menos una mayúscula.'); return false; }
+        if (!/[a-z]/.test(pwd)) { mostrarError('errPassword', 'Debe tener al menos una minúscula.'); return false; }
+        if (!/[0-9]/.test(pwd)) { mostrarError('errPassword', 'Debe tener al menos un número.'); return false; }
+        if (!/[^a-zA-Z0-9]/.test(pwd)) { mostrarError('errPassword', 'Debe tener al menos un carácter especial.'); return false; }
+        return true;
+    }
+
+    function mostrarError(id, msg) {
+        const el = document.getElementById(id);
+        el.textContent = msg;
+        el.style.display = 'block';
+    }
+
+         function limpiarErrores() {
+            const ids = ['errNombreCompleto', 'errNombreUsuario', 'errPassword', 'errCorreo'];
+            for (let i = 0; i < ids.length; i++) {
+                const el = document.getElementById(ids[i]);
+                el.textContent = '';
+                el.style.display = 'none';
+            }
+        }
+    function togglePass() {
+        const input = document.getElementById('password');
+        const icon = document.getElementById('eyeIcon');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    }
+</script>
+}
